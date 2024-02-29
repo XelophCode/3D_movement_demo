@@ -1,0 +1,140 @@
+[gd_scene load_steps=11 format=3 uid="uid://8pnr5mbgw48b"]
+
+[ext_resource type="Texture2D" uid="uid://do133guqdj01h" path="res://texture_08.png" id="1_hofc5"]
+[ext_resource type="Texture2D" uid="uid://faotyf3agcdv" path="res://icon.svg" id="2_pxnky"]
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_ds0ei"]
+albedo_color = Color(0.439216, 0.439216, 0.439216, 1)
+albedo_texture = ExtResource("1_hofc5")
+uv1_triplanar = true
+
+[sub_resource type="Environment" id="Environment_6eku6"]
+background_mode = 1
+background_color = Color(0.662745, 0.694118, 0.768627, 1)
+
+[sub_resource type="GDScript" id="GDScript_51y80"]
+script/source = "extends CharacterBody3D
+
+# MAKE SURE TO LOWER THE DEADZONES OF YOUR STICK INPUTS IN THE INPUTMAPPER 
+
+@export var camera_rotation : Node3D
+@export var camera_pitch : Node3D
+@export var debug_stick_direction : Node3D
+
+const MOVEMENT_SPEED : float = 5.0
+const CAMERA_ADJUSTMENT_SPEED : float = 0.1
+
+var movement_direction_atan2 : float = 1.57
+
+func _ready():
+	print(str(deg_to_rad(90)))
+
+func _process(delta):
+	
+	# GET RIGHT STICK INPUT AS A VECTOR2
+	var rs_input : Vector2 = Vector2.ZERO
+	rs_input.x = Input.get_action_strength(\"rs_right\") - Input.get_action_strength(\"rs_left\")
+	rs_input.y = Input.get_action_strength(\"rs_down\") - Input.get_action_strength(\"rs_up\")
+	
+	# ROTATE THE CAMERA ROTATION AND PITCH NODES ACCORDINGLY
+	camera_rotation.rotation.y -= rs_input.x * CAMERA_ADJUSTMENT_SPEED
+	camera_pitch.rotation.x -= rs_input.y * CAMERA_ADJUSTMENT_SPEED
+	
+	
+	# GET LEFT STICK INPUT AS A VECTOR 2
+	var ls_input : Vector2 = Vector2.ZERO
+	ls_input.x = Input.get_action_strength(\"ls_right\") - Input.get_action_strength(\"ls_left\")
+	ls_input.y = Input.get_action_strength(\"ls_down\") - Input.get_action_strength(\"ls_up\")
+	
+	# GET THE MOVEMENT DIRECTION BY ROTATING THE LEFT STICK INPUT BY THE CAMERA ROTATION AMOUNT
+	var movement_direction : Vector2 = ls_input.rotated(-camera_rotation.rotation.y)
+	
+	# CONVERT THE MOVEMENT DIRECTION VECTOR INTO AN ANGLE USING ATAN2, THEN ROTATE THE DEBUG_STICK_DIRECTION BY THAT ANGLE -90 DEGREES
+	if movement_direction != Vector2.ZERO:
+		movement_direction_atan2 = atan2(-movement_direction.y,movement_direction.x)
+	debug_stick_direction.rotation.y = movement_direction_atan2 - deg_to_rad(90)
+	
+	
+	movement_direction *= MOVEMENT_SPEED
+	
+	velocity.x = movement_direction.x
+	velocity.y = 0 # GRAVITY GOES HERE
+	velocity.z = movement_direction.y
+	
+	move_and_slide()
+	
+	
+	
+	
+	
+	
+	
+	
+
+
+
+
+
+
+"
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_c3mvl"]
+albedo_texture = ExtResource("2_pxnky")
+
+[sub_resource type="CapsuleMesh" id="CapsuleMesh_1gfww"]
+material = SubResource("StandardMaterial3D_c3mvl")
+
+[sub_resource type="CapsuleShape3D" id="CapsuleShape3D_dphpg"]
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_tlewp"]
+albedo_color = Color(1, 0, 1, 1)
+
+[sub_resource type="BoxMesh" id="BoxMesh_7goe7"]
+material = SubResource("StandardMaterial3D_tlewp")
+size = Vector3(0.1, 0.1, 1)
+
+[node name="main" type="Node3D"]
+
+[node name="environment" type="Node3D" parent="."]
+
+[node name="CSGBox3D" type="CSGBox3D" parent="environment"]
+size = Vector3(20.1523, 1, 20.469)
+material = SubResource("StandardMaterial3D_ds0ei")
+
+[node name="WorldEnvironment" type="WorldEnvironment" parent="environment"]
+environment = SubResource("Environment_6eku6")
+
+[node name="DirectionalLight3D" type="DirectionalLight3D" parent="environment"]
+transform = Transform3D(0.917838, -0.179108, -0.354251, 0.396956, 0.414133, 0.819097, 0, -0.89242, 0.451205, 0, 7.64938, 0)
+
+[node name="CharacterBody3D" type="CharacterBody3D" parent="." node_paths=PackedStringArray("camera_rotation", "camera_pitch", "debug_stick_direction")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.574916, 0)
+script = SubResource("GDScript_51y80")
+camera_rotation = NodePath("camera/rotation")
+camera_pitch = NodePath("camera/rotation/pitch")
+debug_stick_direction = NodePath("debug_stick_direction")
+
+[node name="MeshInstance3D" type="MeshInstance3D" parent="CharacterBody3D"]
+transform = Transform3D(-1, 0, -8.74228e-08, 0, 1, 0, 8.74228e-08, 0, -1, 0, 1, 0)
+mesh = SubResource("CapsuleMesh_1gfww")
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="CharacterBody3D"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1, 0)
+shape = SubResource("CapsuleShape3D_dphpg")
+
+[node name="camera" type="Node3D" parent="CharacterBody3D"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1, 0)
+
+[node name="rotation" type="Node3D" parent="CharacterBody3D/camera"]
+
+[node name="pitch" type="Node3D" parent="CharacterBody3D/camera/rotation"]
+
+[node name="Camera3D" type="Camera3D" parent="CharacterBody3D/camera/rotation/pitch"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 6.06993)
+
+[node name="debug_stick_direction" type="Node3D" parent="CharacterBody3D"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1, 0)
+
+[node name="MeshInstance3D" type="MeshInstance3D" parent="CharacterBody3D/debug_stick_direction"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, -1.38401)
+mesh = SubResource("BoxMesh_7goe7")
