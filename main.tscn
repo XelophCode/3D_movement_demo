@@ -24,10 +24,8 @@ script/source = "extends CharacterBody3D
 const MOVEMENT_SPEED : float = 5.0
 const CAMERA_ADJUSTMENT_SPEED : float = 0.1
 
-var movement_direction_atan2 : float = 1.57
+var movement_direction_atan2 : float = PI/2
 
-func _ready():
-	print(str(deg_to_rad(90)))
 
 func _process(delta):
 	
