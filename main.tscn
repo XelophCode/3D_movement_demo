@@ -38,6 +38,9 @@ func _process(delta):
 	camera_rotation.rotation.y -= rs_input.x * CAMERA_ADJUSTMENT_SPEED
 	camera_pitch.rotation.x -= rs_input.y * CAMERA_ADJUSTMENT_SPEED
 	
+	# CLAMP CAMERA PITCH
+	camera_pitch.rotation_degrees.x = clampf(camera_pitch.rotation_degrees.x, -80, 80)
+	
 	
 	# GET LEFT STICK INPUT AS A VECTOR 2
 	var ls_input : Vector2 = Vector2.ZERO
